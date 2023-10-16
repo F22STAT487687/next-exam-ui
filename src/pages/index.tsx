@@ -25,9 +25,10 @@ import { IWeb3Context, useWeb3Context } from "../context/Web3Context";
 import { MdCheck, MdError } from "react-icons/md";
 import { FaEthereum } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
-import writePut from "../hooks/writePut";
+import useExamFnSubmit from "../hooks/exam/useExamFnSubmit";
+import useExamReader from "../hooks/exam/useExamReader";
 import Link from "next/link";
-import readPut from "../hooks/readPut";
+
 
 /**
  * still left todo
@@ -49,16 +50,19 @@ export default function Home() {
     state: { isAuthenticated, address, currentChain },
   } = useWeb3Context() as IWeb3Context;
 
-  const { lastGreeter, lastMessage } = readPut();
-  const { put, loading } = writePut();
-
   const correctNetwork = useMemo(() => {
     return currentChain === chainID;
   }, [currentChain]);
 
+  const { submit, submitStatus } = useExamFnSubmit();
+
+  const { examStatus } = useExamReader();
+
   const [selection, setSelection] = useState('');
 
   const clearSelection = async () => setSelection('');
+
+  console.log(examStatus)
 
   // const updateSubmissions = async (_index: number) => {
   //   let copySubs = {...submissions};
@@ -75,7 +79,7 @@ export default function Home() {
     // e.preventDefault();
     // if (messages.trim() === "") return;
 
-    put(`${index}${selection}`).then(console.log).then(() => clearSelection())
+    submit(index, selection).then(console.log).then(() => clearSelection())
   };
 
   return (
@@ -120,7 +124,11 @@ export default function Home() {
                 </Button>
                 <Spacer />
                 <Text>
-                  Connected address: {(address ? address : "Loading")}
+                  Connected address: {(address ? address : "Loading...")}
+                </Text>
+                <Spacer />
+                <Text>
+                  Contract status: {(examStatus !== null ? (examStatus ? "ENABLED" : "DISABLED") : "Loading...")}
                 </Text>
               </Flex>
             )}
@@ -155,13 +163,13 @@ export default function Home() {
                       </Stack>
                     </RadioGroup>
                     <Button
-                      type="click"
+                      type="submit"
                       variant="solid"
                       bg="green.400"
                       colorScheme="green"
                       color="white"
                       gap={2}
-                      isLoading={loading}
+                      isLoading={submitStatus}
                       onClick={() => handleSubmit(1)}
                     >
                       <Icon as={MdCheck} />
@@ -233,7 +241,7 @@ export default function Home() {
               <Icon as={QuestionIcon} color="Blue.400" />
               <Text fontSize='lg'>Welcome to the exam</Text>
             </HStack>
-            <Text width="80%" pb={4} textAlign="justify">
+            <Text width="50%" pb={4} textAlign="justify">
               Description of the mid-term and how the students should go about 
               completing the assignment.
             </Text>
